@@ -15,7 +15,7 @@
 
 <div id="content">
 	<table id="season-stats">
-		<thead><tr><th></td></tr></thead>
+		<thead><tr><th></th></tr></thead>
 		<tbody></tbody>
 	</table>
 </div>
@@ -97,10 +97,11 @@ $(document).ready(function(){
 		$('#season-stats tbody tr').append('<td></td>');
 		$.getJSON('/players/'+player_id+'/seasons.json', function(data) {
 			$.each(data, function(i, ps) {
-				var stats = '';
+				var stats = '<div class="outer-center"><div class="inner-center">';
 				<%stats.each do |k,v|%>
 					stats += '<div class="stat <%=v%>" style="display: '+(($('.stats-filter[value="<%=v%>"]').prop('checked')) ? 'block' : 'none')+'">'+ps.<%=v%>+'</div>'
 				<%end%>
+				stats += '</div></div>';
 				$('#season-stats tbody tr[data-seasonid="'+ps.season_id+'"] td:last-child').append(stats);
 			});
 			$('#season-stats').trigger('trim_rows');

@@ -86,8 +86,14 @@ div#content {
 	border-collapse: collapse;
 }
 
-#season-stats tbody, th {
-	width: 110px;
+#season-stats thead {
+	position: fixed;
+	top: 20px;
+}
+
+#season-stats th, #season-stats td {
+	width: 150px;
+	border: dotted grey 1px;
 }
 
 #season-stats tr {
@@ -96,21 +102,31 @@ div#content {
 
 #season-stats th {
 	font-size: 9px;
-	padding: 5px;
 }
 
 #season-stats td {
 	height: 30px;
-	padding: 5px;
-	overflow: hidden;
-border: dotted 1px green;
+}
+
+#season-stats td .outer-center {
+  float: right;
+  right: 50%;
+  position: relative;
+}
+
+#season-stats td .inner-center {
+  float: right;
+  right: -50%;
+  position: relative;
 }
 
 div.stat {
-	float:left;
+	float: left;
+	width: 25px;
 	height: 30px;
-	width: 20px;
-	outline: solid green 1px;
+	text-align: center;
+	vertical-align: center;
+	border: dotted blue 1px;
 }
 
 div.stat.teams {
