@@ -1,0 +1,194 @@
+<%stats = {'Teams' => 'teams', 'GP' => 'games_played', 'G' => 'goals', 'A' => 'assists', 'P' => 'points'}%>
+
+<div id="header">
+	<div id="stats-controls">
+		<%stats.each do |k,v|%>
+			<span class="stats-field"><input type="checkbox" class="stats-filter" name="<%=v%>" value="<%=v%>" checked="checked"> <%=k%></span>
+		<%end%>
+	</div>
+
+	<div id="player-controls">
+		<input type="text" id="player-filter" value="Loading Players..." disabled="true" placeholder="Find Player..."/>
+		<ul id="player-list" style="display: none;"></ul>
+	</div>
+</div>
+
+<div id="content">
+	<table id="season-stats">
+		<thead><tr><th></td></tr></thead>
+		<tbody></tbody>
+	</table>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+	/*
+	* load players
+	*/
+	$.getJSON('<%=players_path(:format => :json)%>', function(data) {
+		$.each(data, function(i, p) {
+			// filterable-name attr includes a prefixed space before the first name, this ensures that first, last and middle names all start with a predictable char
+			$('#player-list').append('<li data-filterable-name=" '+p.name.toLowerCase()+'" data-playerid="'+p.id+'">'+p.name+' ('+p.positions+')</li>');
+		});
+		$("#player-filter").val('');
+		$("#player-filter").prop('disabled', false);
+	});
+
+	/*
+	* load seasons
+	*/
+	$.getJSON('<%=seasons_path(:format => :json)%>', function(data) {
+		$.each(data, function(i, s) {
+			$('#season-stats tbody').append('<tr data-seasonid="'+s.id+'" style="display: none;"><th>'+s.name+'</th></tr>');
+		});
+	});
+
+	/*
+	* click event for adding players from list to stats table
+	*/
+	$("#player-list").on('click', 'li', function() {
+		$('#season-stats').trigger('insert_player', [$(this).data('playerid'), $(this).text()]);
+		$(this).trigger('select');
+	});
+
+	/*
+	* customer event to move the selected item in the player list
+	*/
+	$('#player-list').on('move_selector', function(event, n) {
+		var list = $('#player-list li:visible');
+		var max = list.size() - 1;
+		var cur = -1;
+		var idx = 1;
+		for (var i=0; i <= max; i++) {
+			if ($(list[i]).hasClass('selected')) {
+				cur = i;
+				break;
+			}
+		}
+		idx = cur + n;
+		$(list[idx]).trigger('select');
+	})
+	
+	/*
+	* select the given li, deselect the rest and scroll list if needed
+	*/
+	$('#player-list').on('select', 'li', function() {
+		$('#player-list li').removeClass('selected');
+		$(this).addClass('selected');
+
+		var parent = $(this).parent();
+		var par_hgt = parent.height();
+		var cur_pos = parent.scrollTop();
+		var sel_pos = $(this).position().top - parent.position().top;
+		var row_hgt = $(this).outerHeight();
+		if (sel_pos < 0) {
+			parent.scrollTop(cur_pos + sel_pos);
+		} else if (par_hgt - sel_pos < row_hgt) {
+			parent.scrollTop(cur_pos - par_hgt + sel_pos + row_hgt);
+		}
+	});
+
+	/*
+	* print formatted stats cell
+	*/
+	$('#season-stats').on('insert_player', function(e, player_id, player_name) {
+		$('#season-stats thead tr').append('<th data-playerid="'+player_id+'">'+player_name+' <span class="delete-player">X</span></th>');
+		$('#season-stats tbody tr').append('<td></td>');
+		$.getJSON('/players/'+player_id+'/seasons.json', function(data) {
+			$.each(data, function(i, ps) {
+				var stats = '';
+				<%stats.each do |k,v|%>
+					stats += '<div class="stat <%=v%>" style="display: '+(($('.stats-filter[value="<%=v%>"]').prop('checked')) ? 'block' : 'none')+'">'+ps.<%=v%>+'</div>'
+				<%end%>
+				$('#season-stats tbody tr[data-seasonid="'+ps.season_id+'"] td:last-child').append(stats);
+			});
+			$('#season-stats').trigger('trim_rows');
+		});
+	});
+
+	/*
+	* click event to remove player from stats table
+	*/
+	$('#season-stats').on('click', '.delete-player', function() {
+		var idx = $(this).parent().index() + 1;
+		$('#season-stats tbody tr td:nth-child('+idx+')').remove();
+		$(this).parent().remove();
+		$('#season-stats').trigger('trim_rows');
+	})
+
+	/*
+	* hide empty rows from the stats table
+	*/
+	$('#season-stats').on('trim_rows', function() {
+		$('#season-stats tbody tr').each(function(i, row) {
+			var blank = true;
+			$(row).find('td').each(function(j, cell) {
+				if ($(cell).text() != '') {
+					blank = false;
+				}
+			});
+			(blank) ? $(row).fadeOut() : $(row).fadeIn();
+		});
+	});
+
+	/*
+	* focus all keypresses to filter
+	* XXX arrow keys do not scroll page when player list is hidden
+	*/
+	$('body').keydown(function(k) {
+		if ($('#player-list').is(':visible')) {
+			switch(k.keyCode) {
+				case 27:
+					$('#player-filter').focus();
+					$('#player-filter').val('');
+					return false;
+				case 13:
+					$('#player-list li:visible.selected').trigger('click');
+					return false;
+				case 38:
+					$('#player-list').trigger('move_selector', [-1]);
+					return false;
+				case 40:
+					$('#player-list').trigger('move_selector', [1]);
+					return false;
+			}
+		}
+			$('#player-filter').focus();
+	});
+
+	/*
+	* Setup live search filter
+	*/
+	$("#player-filter").keyup(function() {
+		// prefx a space on the filter keyword so that matches only start at a space, ergo matches will start at first, last or middle names
+		var filter = ' ' + $(this).val().toLowerCase();
+
+		if (filter.length > 1) {
+			$('#player-list li').each(function() {
+				if ($(this).data('filterable-name').search(filter) >= 0) {
+					$(this).show();
+				} else {
+					$(this).hide();
+				}
+			});
+			$('#player-list').fadeIn();
+		} else {
+			$('#player-list').fadeOut();
+		}
+	});
+
+	/*
+	* filter displayed stats in table
+	*/
+	$('.stats-filter').change(function() {
+		var klass = $(this).val();
+		if (this.checked) {
+			$('.stat.'+klass).fadeIn();
+		} else {
+			$('.stat.'+klass).fadeOut();
+		}
+	});
+	
+});
+</script>

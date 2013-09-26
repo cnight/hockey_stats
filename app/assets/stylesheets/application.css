@@ -1,0 +1,118 @@
+/*
+ * This is a manifest file that'll be compiled into application.css, which will include all the files
+ * listed below.
+ *
+ * Any CSS and SCSS file within this directory, lib/assets/stylesheets, vendor/assets/stylesheets,
+ * or vendor/assets/stylesheets of plugins, if any, can be referenced here using a relative path.
+ *
+ * You're free to add application-wide styles to this file and they'll appear at the top of the
+ * compiled file, but it's generally better to create a new file per style scope.
+ *
+ *= require_self
+ *= require_tree .
+ */
+
+html, body, div, form, table {
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
+}
+
+body {
+	font-family: verdana;
+	font-size: 12px;
+}
+
+div#header {
+	position: fixed;
+	top: 0px;
+	width: 100%;
+	height: 30px;
+	border-bottom: solid 1px grey;
+	background-color: white;
+}
+
+#stats-controls {
+	float: right;
+	margin: 8px 10px 0px;
+}
+
+#stats-controls span.stats-field {
+	margin: 0px 5px;
+	font-weight: bold;
+}
+
+#player-controls {
+	width: 305px;
+	margin: 5px  5px;
+	padding: 0px;
+}
+
+#player-filter {
+	width: 300px;
+	height: 18px;
+	font-size: 14px;
+	border: solid grey 1px;
+	margin: 0px;
+}
+
+#player-list {
+	width: 300px;
+	max-height: 500px;
+	margin: 0px;
+	padding: 0px;
+	border: solid 1px grey;
+	background-color: white;
+	overflow-y: scroll;
+	z-index: 1000;
+}
+
+#player-list li {
+	list-style-type: none;
+	padding: 2px 5px;
+}
+
+#player-list li.selected {
+	background-color: grey;
+}
+
+div#content {
+	margin: 30px 5px 5px;
+	align: center;
+}
+
+#season-stats {
+	margin: 50px auto;
+	border-collapse: collapse;
+}
+
+#season-stats tbody, th {
+	width: 110px;
+}
+
+#season-stats tr {
+	border: solid grey 1px;
+}
+
+#season-stats th {
+	font-size: 9px;
+	padding: 5px;
+}
+
+#season-stats td {
+	height: 30px;
+	padding: 5px;
+	overflow: hidden;
+border: dotted 1px green;
+}
+
+div.stat {
+	float:left;
+	height: 30px;
+	width: 20px;
+	outline: solid green 1px;
+}
+
+div.stat.teams {
+	width: 30px;
+}
