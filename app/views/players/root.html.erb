@@ -157,16 +157,7 @@ $(document).ready(function(){
 					return false;
 			}
 		}
-		switch (k.keyCode) {
-			case 37:
-				$('#stats-controls').trigger('prev');
-				return false;
-			case 39:
-				$('#stats-controls').trigger('next');
-				return false;
-			default:
-				$('#player-filter').focus();
-		}
+		$('#player-filter').focus();
 	});
 
 	/*
@@ -188,24 +179,6 @@ $(document).ready(function(){
 		} else {
 			$('#player-list').fadeOut();
 		}
-	});
-
-	/*
-	*
-	*/
-	$('#stats-controls').on('next', function() {
-		$(this).find('input:radio:checked').each(function() {
-			$(this).parent().next().find(':first-child').prop('checked', 'checked');
-		});
-	});
-	
-	/*
-	*
-	*/
-	$('#stats-controls').on('prev', function() {
-		$(this).find('input:radio:checked').each(function() {
-			$(this).parent().prev().find(':first-child').prop('checked', 'checked');
-		});
 	});
 
 	/*
