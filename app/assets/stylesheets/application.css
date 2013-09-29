@@ -30,6 +30,7 @@ div#header {
 	height: 30px;
 	border-bottom: solid 1px grey;
 	background-color: white;
+	z-index: 900;
 }
 
 #stats-controls {
@@ -77,58 +78,50 @@ div#header {
 }
 
 div#content {
-	margin: 30px 5px 5px;
-	align: center;
+	position:absolute;
+	width: 100%;
+	top: 30px;
+	text-align: center;
 }
 
 #season-stats {
-	margin: 50px auto;
+	margin: 40px auto;
 	border-collapse: collapse;
+}
+
+#season-stats th, #season-stats td {
+	width: 100px;
+	border-bottom: solid grey 1px;
 }
 
 #season-stats thead {
 	position: fixed;
-	top: 20px;
+	top: 29px;
+	background-color: lightgrey;
+	z-index: 800;
 }
 
-#season-stats th, #season-stats td {
-	width: 150px;
-	border: dotted grey 1px;
-}
-
-#season-stats tr {
-	border: solid grey 1px;
+#season-stats thead th {
+	height: 40px;
 }
 
 #season-stats th {
 	font-size: 9px;
+	background-color: lightgrey;
 }
 
-#season-stats td {
+#season-stats tbody td {
 	height: 30px;
+	overflow: hidden;
 }
 
-#season-stats td .outer-center {
-  float: right;
-  right: 50%;
-  position: relative;
-}
-
-#season-stats td .inner-center {
-  float: right;
-  right: -50%;
-  position: relative;
+#season-stats thead td {
+	border: none;
 }
 
 div.stat {
-	float: left;
-	width: 25px;
-	height: 30px;
+	padding: 3px 0px;
+	font-size: 20px;
 	text-align: center;
-	vertical-align: center;
-	border: dotted blue 1px;
-}
-
-div.stat.teams {
-	width: 30px;
+	vertical-align: middle	;
 }

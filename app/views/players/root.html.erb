@@ -1,10 +1,12 @@
-<%stats = {'Teams' => 'teams', 'GP' => 'games_played', 'G' => 'goals', 'A' => 'assists', 'P' => 'points'}%>
+<%stats = {'GP' => 'games_played', 'G' => 'goals', 'A' => 'assists', 'P' => 'points', '+/-' => 'plus_minus', 'S' => 'shots', 'PIM' => 'penalty_min', 'PPG' => 'pp_goals', 'SHG' => 'sh_goals'}%>
 
 <div id="header">
 	<div id="stats-controls">
-		<%stats.each do |k,v|%>
-			<span class="stats-field"><input type="checkbox" class="stats-filter" name="<%=v%>" value="<%=v%>" checked="checked"> <%=k%></span>
-		<%end%>
+		<%checked = true
+		stats.each do |k,v|%>
+			<span class="stats-field"><input type="radio" class="stats-filter" name="stats-filter" value="<%=v%>" <%if checked%>checked="checked"<%end%>> <%=k%></span>
+		<%checked = false
+		end%>
 	</div>
 
 	<div id="player-controls">
@@ -15,7 +17,7 @@
 
 <div id="content">
 	<table id="season-stats">
-		<thead><tr><th></th></tr></thead>
+		<thead><tr><td></td></tr></thead>
 		<tbody></tbody>
 	</table>
 </div>
@@ -97,11 +99,11 @@ $(document).ready(function(){
 		$('#season-stats tbody tr').append('<td></td>');
 		$.getJSON('/players/'+player_id+'/seasons.json', function(data) {
 			$.each(data, function(i, ps) {
-				var stats = '<div class="outer-center"><div class="inner-center">';
+				var stats = '';
 				<%stats.each do |k,v|%>
 					stats += '<div class="stat <%=v%>" style="display: '+(($('.stats-filter[value="<%=v%>"]').prop('checked')) ? 'block' : 'none')+'">'+ps.<%=v%>+'</div>'
 				<%end%>
-				stats += '</div></div>';
+				stats += '';
 				$('#season-stats tbody tr[data-seasonid="'+ps.season_id+'"] td:last-child').append(stats);
 			});
 			$('#season-stats').trigger('trim_rows');
@@ -155,7 +157,16 @@ $(document).ready(function(){
 					return false;
 			}
 		}
-			$('#player-filter').focus();
+		switch (k.keyCode) {
+			case 37:
+				$('#stats-controls').trigger('prev');
+				return false;
+			case 39:
+				$('#stats-controls').trigger('next');
+				return false;
+			default:
+				$('#player-filter').focus();
+		}
 	});
 
 	/*
@@ -180,15 +191,29 @@ $(document).ready(function(){
 	});
 
 	/*
+	*
+	*/
+	$('#stats-controls').on('next', function() {
+		$(this).find('input:radio:checked').each(function() {
+			$(this).parent().next().find(':first-child').prop('checked', 'checked');
+		});
+	});
+	
+	/*
+	*
+	*/
+	$('#stats-controls').on('prev', function() {
+		$(this).find('input:radio:checked').each(function() {
+			$(this).parent().prev().find(':first-child').prop('checked', 'checked');
+		});
+	});
+
+	/*
 	* filter displayed stats in table
 	*/
 	$('.stats-filter').change(function() {
-		var klass = $(this).val();
-		if (this.checked) {
-			$('.stat.'+klass).fadeIn();
-		} else {
-			$('.stat.'+klass).fadeOut();
-		}
+		$('.stat').hide();
+		$('.stat.'+$(this).val()).fadeIn();
 	});
 	
 });
