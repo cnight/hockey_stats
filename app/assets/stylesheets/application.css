@@ -26,11 +26,20 @@ body {
 div#header {
 	position: fixed;
 	top: 0px;
-	width: 100%;
-	height: 30px;
+	width: 98%;
+	margin: 0px 1%;
+	height: 35px;
 	border-bottom: solid 1px grey;
+	border-left: solid 1px grey;
+	border-right: solid 1px grey;
 	background-color: white;
 	z-index: 900;
+}
+
+#seasons-controls {
+	float: right;
+	margin: 9px 10px 0px;
+	font-weight: bold;
 }
 
 #stats-controls {
@@ -39,13 +48,13 @@ div#header {
 }
 
 #stats-controls span.stats-field {
-	margin: 0px 5px;
+	margin: 0px 3px;
 	font-weight: bold;
 }
 
 #player-controls {
 	width: 305px;
-	margin: 5px  5px;
+	margin: 6px  6px;
 	padding: 0px;
 }
 
@@ -80,38 +89,38 @@ div#header {
 div#content {
 	position:absolute;
 	width: 100%;
-	top: 30px;
+	top: 35px;
 	text-align: center;
 }
 
 #season-stats {
-	margin: 40px auto;
+	margin: 53px auto;
 	border-collapse: collapse;
 }
 
 #season-stats th, #season-stats td {
 	width: 100px;
-	border-bottom: solid grey 1px;
+	border-bottom: solid grey 1px;	
 }
 
 #season-stats thead {
 	position: fixed;
-	top: 29px;
-	background-color: lightgrey;
+	top: 35px;
+	background-color: white;
+	border-top: solid white 10px;
 	z-index: 800;
 }
 
 #season-stats thead th {
-	height: 40px;
+	height: 40px;	
 }
 
 #season-stats th {
 	font-size: 9px;
-	background-color: lightgrey;
 }
 
 #season-stats tbody td {
-	height: 30px;
+	height: 35px;
 	overflow: hidden;
 }
 
@@ -119,9 +128,22 @@ div#content {
 	border: none;
 }
 
+.alt-bg {
+	background-color: #f6f6f6;
+}
+
+.highlight {
+	color: green;
+}
+
 div.stat {
 	padding: 3px 0px;
 	font-size: 20px;
 	text-align: center;
-	vertical-align: middle	;
+	vertical-align: middle;
+	display: none;
+}
+
+div.stat.cur {
+	display: block;
 }

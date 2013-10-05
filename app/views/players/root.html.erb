@@ -1,12 +1,17 @@
-<%stats = {'GP' => 'games_played', 'G' => 'goals', 'A' => 'assists', 'P' => 'points', '+/-' => 'plus_minus', 'S' => 'shots', 'PIM' => 'penalty_min', 'PPG' => 'pp_goals', 'SHG' => 'sh_goals'}%>
+<%stats = {'G' => 'goals', 'A' => 'assists', 'P' => 'points', 'GP' => 'games_played', '+/-' => 'plus_minus', 'S' => 'shots', 'PIM' => 'penalty_min', 'PPG' => 'pp_goals', 'SHG' => 'sh_goals'}%>
 
 <div id="header">
-	<div id="stats-controls">
+		<div id="stats-controls">
 		<%checked = true
 		stats.each do |k,v|%>
-			<span class="stats-field"><input type="radio" class="stats-filter" name="stats-filter" value="<%=v%>" <%if checked%>checked="checked"<%end%>> <%=k%></span>
+			<span class="stats-field"><input type="radio" class="stats-filter" name="stats-filter" value="<%=v%>" <%if checked%>checked="checked"<%end%>><%=k%></span>
 		<%checked = false
 		end%>
+	</div>
+
+	<div id="seasons-controls">
+		<input class="subseason-filter" id="subseason-filter-2" type="checkbox" value="2" checked="checked">Regular Season
+		<input class="subseason-filter" id="subseason-filter-3" type="checkbox" value="3">Playoffs
 	</div>
 
 	<div id="player-controls">
@@ -42,7 +47,7 @@ $(document).ready(function(){
 	*/
 	$.getJSON('<%=seasons_path(:format => :json)%>', function(data) {
 		$.each(data, function(i, s) {
-			$('#season-stats tbody').append('<tr data-seasonid="'+s.id+'" style="display: none;"><th>'+s.name+'</th></tr>');
+			$('#season-stats tbody').append('<tr data-seasonid="'+s.id+'" data-subseasonid="'+s.subseason_id+'" style="display: none;"><th>'+s.name+'</th></tr>');
 		});
 	});
 
@@ -92,16 +97,38 @@ $(document).ready(function(){
 	});
 
 	/*
+	* filter displayed stats in table
+	*/
+	$('.stats-filter').change(function() {
+		var s = $('#season-stats tbody td div.stat');
+		s.removeClass('cur');
+		s.hide();
+		s = $('#season-stats tbody td div.stat.'+$(this).val());
+		s.addClass('cur');
+		s.fadeIn();
+		$('#season-stats').trigger('highlight');
+	});
+	
+	/*
+	* change the displayed stas based on the selector
+	*/
+	$('.subseason-filter').change(function () {
+		$('#season-stats').trigger('draw_rows');
+		$('#season-stats').trigger('highlight');
+	});
+
+	/*
 	* print formatted stats cell
 	*/
 	$('#season-stats').on('insert_player', function(e, player_id, player_name) {
+		//console.log('insert player');
 		$('#season-stats thead tr').append('<th data-playerid="'+player_id+'">'+player_name+' <span class="delete-player">X</span></th>');
 		$('#season-stats tbody tr').append('<td></td>');
 		$.getJSON('/players/'+player_id+'/seasons.json', function(data) {
 			$.each(data, function(i, ps) {
 				var stats = '';
 				<%stats.each do |k,v|%>
-					stats += '<div class="stat <%=v%>" style="display: '+(($('.stats-filter[value="<%=v%>"]').prop('checked')) ? 'block' : 'none')+'">'+ps.<%=v%>+'</div>'
+					stats += '<div class="stat <%=v%> '+(($('.stats-filter[value="<%=v%>"]').prop('checked')) ? 'cur' : '')+'">'+ps.<%=v%>+'</div>'
 				<%end%>
 				stats += '';
 				$('#season-stats tbody tr[data-seasonid="'+ps.season_id+'"] td:last-child').append(stats);
@@ -124,14 +151,65 @@ $(document).ready(function(){
 	* hide empty rows from the stats table
 	*/
 	$('#season-stats').on('trim_rows', function() {
+		//console.log('trim');
 		$('#season-stats tbody tr').each(function(i, row) {
+			$(row).removeClass('populated');
 			var blank = true;
-			$(row).find('td').each(function(j, cell) {
+			var cells = $(row).find('td')
+			cells.filter(':odd').removeClass('alt-bg');
+			cells.filter(':even').addClass('alt-bg');
+			cells.each(function(j, cell) {
 				if ($(cell).text() != '') {
 					blank = false;
+					return false;
 				}
 			});
-			(blank) ? $(row).fadeOut() : $(row).fadeIn();
+			blank ? $(row).removeClass('populated') : $(row).addClass('populated');
+		});
+		$('#season-stats').trigger('draw_rows');
+		$('#season-stats').trigger('highlight');
+		$('#season-stats thead tr th').removeClass('alt-bg');
+		$('#season-stats thead tr th').filter(':even').addClass('alt-bg');
+	});
+	
+	/*
+	* draw the populated rows to teh stats table
+	*/
+	$('#season-stats').on('draw_rows', function() {
+		//console.log('draw rows');
+		var rows = $('#season-stats tbody tr');
+		rows.not('.populated').fadeOut();
+		rows = rows.filter('.populated');
+		$('.subseason-filter').each(function(i, ss) {
+			if ($(ss).prop('checked')) {
+				rows.filter('[data-subseasonid='+$(ss).val()+']').show();
+			} else {
+				rows.filter('[data-subseasonid='+$(ss).val()+']').hide();
+			}
+		});
+	});
+	
+	/*
+	* highlight the stat leader in each row
+	*/
+	$('#season-stats').on('highlight', function() {
+		//console.log('highlight');
+		$(this).find('tbody tr.populated').each(function(i, row) {
+			var max = -1000;
+			var idxs = [];
+			$(row).find('td').each(function(j, cell) {
+				var v = parseInt($(cell).find('div.cur').text());
+				if (v > max) {
+					max = v;
+					idxs = [j];
+				} else if (v == max) {
+					idxs.push(j);
+				}
+				$(cell).removeClass('highlight');
+			});
+			$.each(idxs, function(i, idx) {
+				$($(row).find('td')[idx]).addClass('highlight');
+			});
 		});
 	});
 
@@ -166,7 +244,6 @@ $(document).ready(function(){
 	$("#player-filter").keyup(function() {
 		// prefx a space on the filter keyword so that matches only start at a space, ergo matches will start at first, last or middle names
 		var filter = ' ' + $(this).val().toLowerCase();
-
 		if (filter.length > 1) {
 			$('#player-list li').each(function() {
 				if ($(this).data('filterable-name').search(filter) >= 0) {
@@ -179,14 +256,6 @@ $(document).ready(function(){
 		} else {
 			$('#player-list').fadeOut();
 		}
-	});
-
-	/*
-	* filter displayed stats in table
-	*/
-	$('.stats-filter').change(function() {
-		$('.stat').hide();
-		$('.stat.'+$(this).val()).fadeIn();
 	});
 	
 });
