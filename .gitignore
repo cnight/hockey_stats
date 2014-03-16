@@ -18,4 +18,5 @@
 /vendor/bundle
 .ruby-version
 
-/lib/stats_scrapers
+/lib/stats_scrapers/nhl.com/data
+/lib/stats_scrapers/yahoo/data
